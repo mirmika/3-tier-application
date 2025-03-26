@@ -17,7 +17,7 @@ spec:
           image: postgres:latest
           env:
             - name: POSTGRES_DB
-              value: "basic3tier"
+              value: "basic3tier-db"
             - name: POSTGRES_USER
               value: "mirmika"
             - name: POSTGRES_PASSWORD
