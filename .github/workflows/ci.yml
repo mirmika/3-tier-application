@@ -27,13 +27,13 @@ jobs:
 
     - name: Build and test Backend API
       run: |
-        cd 3-tear-application.api 
+        cd ./api 
         docker build -t mirmika/backend:latest . 
         docker run --rm mirmika/backend:latest 
 
     - name: Build and test Frontend UI
       run: |
-        cd 3-tear-application.ui  
+        cd ./ui  
         docker build -t mirmika/frontend:latest . 
         docker run --rm mirmika/frontend:latest 
 
