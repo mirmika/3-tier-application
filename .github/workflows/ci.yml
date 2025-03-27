@@ -24,6 +24,15 @@ jobs:
       with:
         username: ${{ secrets.DOCKER_USERNAME }}  # Store DockerHub username as a secret in GitHub
         password: ${{ secrets.DOCKER_PASSWORD }}  # Store DockerHub password as a secret in GitHub
+        
+    - name: List directory structure for debugging
+      run: |
+        echo "Listing current directory"
+        ls -alh
+        echo "Listing contents of root"
+        ls -alh /
+        echo "Listing contents of 3-tear-application.api"
+        ls -alh ./3-tear-application.api
 
     - name: Build and test Backend API
       run: |
