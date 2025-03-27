@@ -24,7 +24,7 @@ jobs:
       with:
         username: ${{ secrets.DOCKER_USERNAME }}  # Store DockerHub username as a secret in GitHub
         password: ${{ secrets.DOCKER_PASSWORD }}  # Store DockerHub password as a secret in GitHub
-        
+
     - name: List directory structure for debugging
       run: |
         echo "Listing current directory"
@@ -36,10 +36,13 @@ jobs:
 
     - name: Build and test Backend API
       run: |
-        cd ./api 
-        docker build -t mirmika/backend:latest . 
-        docker run --rm mirmika/backend:latest 
-
+        echo "Changing to api directory"
+        cd ./3-tear-application.api
+        echo "Listing contents of api directory"
+        ls -alh
+        docker build -t mirmika/backend:latest .
+        docker run --rm mirmika/backend:latest
+        
     - name: Build and test Frontend UI
       run: |
         cd ./ui  
