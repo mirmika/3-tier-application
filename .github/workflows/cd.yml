@@ -3,7 +3,7 @@ name: CD Pipeline
 on:
   push:
     branches:
-      - main  
+      - main  # Trigger the pipeline on push to the 'main' branch
 
 jobs:
   deploy:
@@ -25,21 +25,25 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
 
     - name: Add EC2 to known hosts
-      run: ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP }} >> ~/.ssh/known_hosts
+      run: |
+        ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP }} >> ~/.ssh/known_hosts
 
     - name: Deploy Docker Containers to EC2
       run: |
         ssh ubuntu@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
+          # Ensure user has Docker permissions (add to the docker group)
+          sudo usermod -aG docker ubuntu
+
           # Pull latest Docker images
-          docker pull mirmika/backend:latest
-          docker pull mirmika/frontend:latest
+          sudo docker pull mirmika/backend:latest
+          sudo docker pull mirmika/frontend:latest
 
           # Stop and remove old containers if they exist
-          docker rm -f backend frontend || true
+          sudo docker rm -f backend frontend || true
 
           # Run the backend container on port 5000
-          docker run -d -p 5000:5000 --name backend mirmika/backend:latest
+          sudo docker run -d -p 5000:5000 --name backend mirmika/backend:latest
 
           # Run the frontend container on port 80
-          docker run -d -p 80:80 --name frontend mirmika/frontend:latest
+          sudo docker run -d -p 80:80 --name frontend mirmika/frontend:latest
         EOF
