@@ -24,13 +24,13 @@ jobs:
       - name: Restore and build the project
         run: |
           # Specify the path to the .csproj file for your project
-          dotnet restore ./api/Basic3Tier.Core/Basic3Tier.Core.csproj  # Adjust the path to the actual location of your .csproj
+          dotnet restore ./api/Basic3Tier.Core/Basic3Tier.Core.csproj  
           dotnet build ./api/Basic3Tier.Core/Basic3Tier.Core.csproj --no-restore --configuration Release
 
       - name: Run tests
         run: |
           # Specify the .csproj file for running tests
-          dotnet test ./api/Basic3Tier.Core.Tests/Basic3Tier.Core.Tests.csproj --no-build --configuration Release
+          dotnet test ./api/Tests/Basic3Tier.Core.Tests/Basic3Tier.Core.Tests.csproj --no-build --configuration Release
 
       - name: Set up DockerHub credentials
         uses: docker/login-action@v2.2.0
