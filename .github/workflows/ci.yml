@@ -31,18 +31,17 @@ jobs:
         ls -alh
         echo "Listing contents of root"
         ls -alh /
-        echo "Listing contents of 3-tear-application.api"
-        ls -alh ./3-tear-application.api
+        echo "Listing contents of api directory"
+        ls -alh ./api
 
     - name: Build and test Backend API
       run: |
-        echo "Changing to api directory"
-        cd ./3-tear-application.api
+        cd ./api  # Correct the path to the 'api' directory
         echo "Listing contents of api directory"
         ls -alh
         docker build -t mirmika/backend:latest .
         docker run --rm mirmika/backend:latest
-        
+
     - name: Build and test Frontend UI
       run: |
         cd ./ui  
