@@ -21,16 +21,29 @@ jobs:
         with:
           dotnet-version: '7.0.x'
 
-      - name: Restore and build the project
+      - name: Restore dependencies
         run: |
-          # Specify the path to the .csproj file for your project
           dotnet restore ./api/Basic3Tier.Core/Basic3Tier.Core.csproj  
+          dotnet restore ./api/Tests/Basic3Tier.Core.Tests/Basic3Tier.Core.Tests.csproj
+
+      - name: Build the project
+        run: |
           dotnet build ./api/Basic3Tier.Core/Basic3Tier.Core.csproj --no-restore --configuration Release
+          dotnet build ./api/Tests/Basic3Tier.Core.Tests/Basic3Tier.Core.Tests.csproj --no-restore --configuration Release
+
+      - name: List test output files (debugging)
+        run: ls -alh ./api/Tests/Basic3Tier.Core.Tests/bin/Release/net7.0/
 
       - name: Run tests
         run: |
-          # Specify the .csproj file for running tests
-          dotnet test ./api/Tests/Basic3Tier.Core.Tests/Basic3Tier.Core.Tests.csproj --no-build --configuration Release
+          dotnet test ./api/Tests/Basic3Tier.Core.Tests/Basic3Tier.Core.Tests.csproj --configuration Release --logger "trx;LogFileName=test_results.trx"
+
+      - name: Upload test results (if failure occurs)
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: ./api/Tests/Basic3Tier.Core.Tests/TestResults/test_results.trx
 
       - name: Set up DockerHub credentials
         uses: docker/login-action@v2.2.0
@@ -54,8 +67,8 @@ jobs:
       - name: Build and test Frontend UI
         run: |
           cd ./ui  # Path to the frontend UI folder
-          docker build -t mirmika/frontend:latest .
-          docker run --rm mirmika/frontend:latest
+          docker build -t mirmika/frontend:latest . 
+          docker run --rm mirmika/frontend:latest 
 
       - name: Scan code with SonarQube
         uses: sonarsource/sonarcloud-github-action@master
