@@ -60,13 +60,13 @@ jobs:
 
       - name: Build and test Backend API
         run: |
-          cd ./api/Basic3TierAPI  # Path to the backend API folder
+          cd ./api
           docker build -t mirmika/backend:latest .
           docker run --rm mirmika/backend:latest
 
       - name: Build and test Frontend UI
         run: |
-          cd ./ui  # Path to the frontend UI folder
+          cd ./ui 
           docker build -t mirmika/frontend:latest . 
           docker run --rm mirmika/frontend:latest 
 
