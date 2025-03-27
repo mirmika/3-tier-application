@@ -3,7 +3,7 @@ name: CD Pipeline
 on:
   push:
     branches:
-      - main  # Trigger on push to the 'main' branch (after CI)
+      - main  
 
 jobs:
   deploy:
@@ -16,16 +16,19 @@ jobs:
     - name: Set up SSH
       uses: webfactory/ssh-agent@v0.5.3
       with:
-        ssh-private-key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}  # EC2 private key to SSH into the instance
+        ssh-private-key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+
+    - name: Add EC2 to known hosts
+      run: ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP }} >> ~/.ssh/known_hosts
 
     - name: Deploy Docker Containers to EC2
       run: |
-        ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
-          # Pull Docker images from DockerHub
+        ssh ec2-user@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
+          # Pull latest Docker images
           docker pull mirmika/backend:latest
           docker pull mirmika/frontend:latest
 
-          # Remove existing containers if they exist
+          # Stop and remove old containers if they exist
           docker rm -f backend frontend || true
 
           # Run the backend container on port 5000
