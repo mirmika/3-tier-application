@@ -33,7 +33,12 @@ jobs:
         ls -alh /
         echo "Listing contents of api directory"
         ls -alh ./api
-
+    - name: Run a simple test in the /api directory
+      run: |
+          cd ./api
+          echo "Running tests or checking for issues"
+          docker build -t test-image .
+          
     - name: Build and test Backend API
       run: |
         cd ./api 
