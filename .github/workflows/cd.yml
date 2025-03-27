@@ -24,7 +24,7 @@ jobs:
 
     - name: Deploy Docker Containers to EC2
       run: |
-        ssh ec2-user@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
+        ssh ubuntu@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
           # Pull latest Docker images
           docker pull mirmika/backend:latest
           docker pull mirmika/frontend:latest
