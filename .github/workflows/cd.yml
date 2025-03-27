@@ -1,0 +1,36 @@
+name: CD Pipeline
+
+on:
+  push:
+    branches:
+      - main  # Trigger on push to the 'main' branch (after CI)
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}  # EC2 private key to SSH into the instance
+
+    - name: Deploy Docker Containers to EC2
+      run: |
+        ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
+          # Pull Docker images from DockerHub
+          docker pull mirmika/backend:latest
+          docker pull mirmika/frontend:latest
+
+          # Remove existing containers if they exist
+          docker rm -f backend frontend || true
+
+          # Run the backend container on port 5000
+          docker run -d -p 5000:5000 --name backend mirmika/backend:latest
+
+          # Run the frontend container on port 80
+          docker run -d -p 80:80 --name frontend mirmika/frontend:latest
+        EOF

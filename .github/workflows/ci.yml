@@ -1,0 +1,56 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main  # Trigger the pipeline on push to the 'main' branch
+  pull_request:
+    branches:
+      - main  # Trigger the pipeline on a PR to 'main' branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout the code
+      uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Set up DockerHub credentials
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}  # Store DockerHub username as a secret in GitHub
+        password: ${{ secrets.DOCKER_PASSWORD }}  # Store DockerHub password as a secret in GitHub
+
+    - name: Build and test Backend API
+      run: |
+        cd 3-tear-application.api 
+        docker build -t mirmika/backend:latest . 
+        docker run --rm mirmika/backend:latest 
+
+    - name: Build and test Frontend UI
+      run: |
+        cd 3-tear-application.ui  
+        docker build -t mirmika/frontend:latest . 
+        docker run --rm mirmika/frontend:latest 
+
+    - name: Scan code with SonarQube
+      uses: sonarsource/sonarcloud-github-action@master
+      with:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}  # Secure SonarQube token stored in GitHub Secrets
+        SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}  # SonarQube server URL stored as a GitHub variable
+
+    - name: Tag Docker Images with commit SHA
+      run: |
+        docker tag mirmika/backend:latest mirmika/backend:${{ github.sha }}
+        docker tag mirmika/frontend:latest mirmika/frontend:${{ github.sha }}
+
+    - name: Push Docker Images to DockerHub
+      run: |
+        docker push mirmika/backend:latest
+        docker push mirmika/frontend:latest
+        docker push mirmika/backend:${{ github.sha }}
+        docker push mirmika/frontend:${{ github.sha }}
