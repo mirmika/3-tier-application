@@ -11,6 +11,12 @@ on:
 jobs:
   build-test-and-docker:
     runs-on: ubuntu-latest
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_NAME: basic3tier
+      DB_USER: postgres
+      DB_PASSWORD: admin123
 
     steps:
       - name: Check out repository
@@ -20,6 +26,25 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '7.0.x'
+
+      - name: Start PostgreSQL Database
+        run: |
+          docker run -d --name postgres-ci \
+            -e POSTGRES_USER=${DB_USER} \
+            -e POSTGRES_PASSWORD=${DB_PASSWORD} \
+            -e POSTGRES_DB=${DB_NAME} \
+            -p 5432:5432 postgres:15    
+
+      - name: Verify PostgreSQL is Running
+        run: docker ps | grep postgres     
+
+      - name: Set Database Environment Variables
+        run: |
+          echo "DB_HOST=localhost" >> $GITHUB_ENV
+          echo "DB_PORT=5432" >> $GITHUB_ENV
+          echo "DB_NAME=basic3tier" >> $GITHUB_ENV
+          echo "DB_USER=postgres" >> $GITHUB_ENV
+          echo "DB_PASSWORD=admin123" >> $GITHUB_ENV   
 
       - name: Restore dependencies
         run: |
