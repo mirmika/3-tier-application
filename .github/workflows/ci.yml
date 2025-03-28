@@ -60,6 +60,15 @@ jobs:
        # Checking PostgreSQL process inside the container
        docker exec $container_name sh -c "ps aux | grep postgres"
 
+    - name: Check PostgreSQL Configuration Path
+      run: |
+       container_name=${{ steps.get_container_name.outputs.container_name }}
+       echo "Checking PostgreSQL configuration path in container: $container_name"
+      
+       # List the directory structure to find the correct configuration file
+       docker exec $container_name sh -c "ls -l /var/lib/postgresql/data"
+       docker exec $container_name sh -c "ls -l /etc/postgresql"  
+
     - name: Modify PostgreSQL listen_addresses
       run: |
         container_name=${{ steps.get_container_name.outputs.container_name }}
