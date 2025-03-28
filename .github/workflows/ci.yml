@@ -46,14 +46,13 @@ jobs:
          echo "Container name is: $container_name"
          echo "::set-output name=container_name::$container_name"
 
-      # Step 2: Check if PostgreSQL is running inside the container
       - name: Check if PostgreSQL is running
         run: |
-          container_name=${{ steps.get_container_name.outputs.container_name }}
-          echo "Checking if PostgreSQL is running in container: $container_name"
-          
-          # Try using `sh` instead of `bash` as some containers may not have `bash`
-          docker exec -it $container_name sh -c "ps aux | grep postgres" 
+         container_name=${{ steps.get_container_name.outputs.container_name }}
+         echo "Checking if PostgreSQL is running in container: $container_name"
+    
+         # Run the command without -it flags since GitHub Actions does not have TTY support
+         docker exec $container_name sh -c "ps aux | grep postgres"
 
        # Step 2: Modify PostgreSQL Configuration (listen_addresses)
       - name: Modify PostgreSQL listen_addresses
