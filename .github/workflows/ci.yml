@@ -7,10 +7,11 @@ on:
   pull_request:
     branches:
       - main 
+
 jobs:
- build-test-and-docker:
-  runs-on: ubuntu-latest
-  services:
+  build-test-and-docker:
+    runs-on: ubuntu-latest
+    services:
       postgres:
         image: postgres:15-alpine
         env:
@@ -24,171 +25,81 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5 
-  steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
 
-    - name: Start PostgreSQL container with increased memory
-      run: |
-        docker run -d --memory="2g" --name steps.get_container_name.outputs.container_name postgres:latest  
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: List all running containers
-      run: docker ps -a
+      - name: List all running containers
+        run: docker ps -a
 
-    - name: Get Container Name
-      id: get_container_name  # Ensure this is your step's id
-      run: |
-          container_name=$(docker ps -a --format "{{.Names}}")
-          echo "Container name is: $container_name"
-          echo "::set-output name=container_name::$container_name"
+      - name: Debug PostgreSQL Logs
+        run: docker logs ${{ job.services.postgres.id }}
 
-    # Debugging - Erase Later
-    - name: View PostgreSQL Logs
-      run: |
-        container_name=${{ steps.get_container_name.outputs.container_name }}
-        docker logs $container_name
+      - name: Verify PostgreSQL Service is Running
+        run: |
+          echo "Checking if PostgreSQL is ready..."
+          until PGPASSWORD=admin123 psql -h localhost -U postgres -d basic3tier -c "SELECT 1;" 2>/dev/null; do
+            echo "Waiting for PostgreSQL..."
+            sleep 5
+          done
+          echo "PostgreSQL is ready!"
 
-    - name: Verify Container Status
-      run: docker ps
-
-
-    - name: Check if PostgreSQL is running
-      run: |
-       container_name=${{ steps.get_container_name.outputs.container_name }}
-       echo "Checking if PostgreSQL is running in container: $container_name"
-      
-       # Run the command without -it flags since GitHub Actions does not have TTY support
-       if [ -z "$container_name" ]; then
-        echo "Error: No container found"
-        exit 1
-       fi
-
-       # Checking PostgreSQL process inside the container
-       docker exec $container_name sh -c "ps aux | grep postgres"
-
-    - name: Check PostgreSQL Configuration Path
-      run: |
-       container_name=${{ steps.get_container_name.outputs.container_name }}
-       echo "Checking PostgreSQL configuration path in container: $container_name"
-      
-       # List the directory structure to find the correct configuration file
-       docker exec $container_name sh -c "ls -l /var/lib/postgresql/data"
-       # List the directory structure to find the correct configuration file
-
-    - name: Modify PostgreSQL listen_addresses
-      run: |
-        container_name=${{ steps.get_container_name.outputs.container_name }}
-        echo "Modifying listen_addresses to '*'"
-        
-        docker exec $container_name sh -c "sed -i 's/^#listen_addresses =.*/listen_addresses = '*'/' /var/lib/postgresql/data/postgresql.conf"
-        docker exec $container_name sh -c "sed -i 's/127.0.0.1/0.0.0.0/g' /var/lib/postgresql/data/pg_hba.conf"
-
-    # Step 3: Restart PostgreSQL inside the container to apply changes
-    - name: Restart PostgreSQL
-      run: |
-       container_name=${{ steps.get_container_name.outputs.container_name }}
-       echo "Restarting PostgreSQL inside the container"
-       # Set the PGDATA environment variable and run pg_ctl as the postgres user
-       docker exec $container_name su - postgres -c "PGDATA=/var/lib/postgresql/data pg_ctl restart"
-
-    - name: View PostgreSQL Logs
-      run: |
-        container_name=${{ steps.get_container_name.outputs.container_name }}
-        docker logs $container_name
-
-    - name: Verify Container Status
-      run: docker ps
-
-    - name: Test PostgreSQL Connection
-      run: |
-        container_name=${{ steps.get_container_name.outputs.container_name }}
-        echo "Waiting for PostgreSQL connection..."
-        until PGPASSWORD=admin123 psql -h $container_name -U postgres -d basic3tier -c "SELECT 1;" 2>/dev/null; do
-          echo "Waiting for PostgreSQL to be ready..."
-          sleep 5
-        done
-        echo "PostgreSQL is ready!"
-
-    # Step to check out the repository
-    - name: Check out repository
-      uses: actions/checkout@v4
-
-
-      # Upload .NET test results as artifacts
-    - name: Upload dotnet test results
-      uses: actions/upload-artifact@v4
-      with:
-          name: dotnet-results
-          path: TestResults
-
-    # Set up DockerHub credentials
-    - name: Set up DockerHub credentials
-      uses: docker/login-action@v2.2.0
-      with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-    # Build and test Backend API
-    - name: Build and test Backend API
-      run: |
+      - name: Build and test Backend API
+        run: |
           cd ./api
           docker build -t mirmika/backend:latest .
           docker run --rm mirmika/backend:latest
 
-    # Build and test Frontend UI
-    - name: Build and test Frontend UI
-      run: |
+      - name: Build and test Frontend UI
+        run: |
           cd ./ui 
           docker build -t mirmika/frontend:latest . 
           docker run --rm mirmika/frontend:latest
 
-    # Tag Docker images with commit SHA
-    - name: Tag Docker Images with commit SHA
-      run: |
+      - name: Tag Docker Images with commit SHA
+        run: |
           docker tag mirmika/backend:latest mirmika/backend:${{ github.sha }}
           docker tag mirmika/frontend:latest mirmika/frontend:${{ github.sha }}
 
-    # Push Docker Images to DockerHub
-    - name: Push Docker Images to DockerHub
-      run: |
+      - name: Push Docker Images to DockerHub
+        run: |
           docker push mirmika/backend:latest
           docker push mirmika/frontend:latest
           docker push mirmika/backend:${{ github.sha }}
           docker push mirmika/frontend:${{ github.sha }}
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
           java-version: 17
-          distribution: 'zulu' # Alternative distribution options are available.
+          distribution: 'zulu'
 
-    - name: Cache SonarQube packages
-      uses: actions/cache@v4
-      with:
-          path: ~\.sonar\cache
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
-    - name: Cache SonarQube scanner
-      id: cache-sonar-scanner
-      uses: actions/cache@v4
-      with:
-          path: .\.sonar\scanner
+      - name: Cache SonarQube scanner
+        id: cache-sonar-scanner
+        uses: actions/cache@v4
+        with:
+          path: ./.sonar/scanner
           key: ${{ runner.os }}-sonar-scanner
           restore-keys: ${{ runner.os }}-sonar-scanner
 
-    - name: Install SonarScanner
-      run: |
+      - name: Install SonarScanner
+        run: |
           dotnet tool install --global dotnet-sonarscanner
 
-    - name: Build and analyze
-      shell: bash
-      run: |
-          # Run SonarQube scan
+      - name: Build and analyze
+        shell: bash
+        run: |
           dotnet-sonarscanner begin /k:"3-tier-application" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}"
-
-          # Specify your project or solution path in the build command
           dotnet build ./api/Basic3Tier.Core/Basic3Tier.Core.csproj --configuration Release
-
-          # End SonarQube scan
-          dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"        
+          dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
