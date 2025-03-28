@@ -54,6 +54,9 @@ jobs:
       - name: Verify PostgreSQL is Running
         run: docker ps | grep postgres   
 
+      - name: Check Memory Usage
+        run: free -m
+        
       - name: Test PostgreSQL Connection
         run: PGPASSWORD=admin123 psql -h 127.0.0.1 -U postgres -d basic3tier -c "SELECT 1;"
 
