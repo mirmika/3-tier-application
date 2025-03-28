@@ -45,8 +45,7 @@ jobs:
       - name: Exec into the Backend Container
         run: |
          container_name=${{ steps.get_container_name.outputs.container_name }}
-         docker exec $container_name bash -c "psql -h localhost -U postgres -d basic3tier -c 'SELECT 1;'"
-
+         docker exec $container_name bash -c "psql -h $container_name -U postgres -d basic3tier -c 'SELECT 1;'"
 
       - name: View PostgreSQL Logs
         run: |
