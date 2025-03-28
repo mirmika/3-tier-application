@@ -31,20 +31,17 @@ jobs:
           key: ${{ runner.os }}-sonar-scanner
           restore-keys: ${{ runner.os }}-sonar-scanner
 
-     - name: Install SonarQube scanner
-       if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
+     - name: Install SonarScanner
        run: |
-        mkdir -p ./.sonar/scanner  # Create the directory using bash
-        dotnet tool update dotnet-sonarscanner --tool-path ./.sonar/scanner
+          dotnet tool install --global dotnet-sonarscanner
 
-          # SonarQube Build and Analysis (Bash shell used)
      - name: Build and analyze
        shell: bash
        run: |
-          .\.sonar\scanner\dotnet-sonarscanner begin /k:"3-tier-application" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}"
+          # Run SonarQube scan using the correct path
+          ./sonar/scanner/dotnet-sonarscanner begin /k:"3-tier-application" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}"
           dotnet build
-          .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
-
+          ./sonar/scanner/dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
       # Tag Docker images with commit SHA
      - name: Tag Docker Images with commit SHA
