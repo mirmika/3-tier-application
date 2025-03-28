@@ -1,10 +1,9 @@
 name: CD Pipeline
 
 on:
-  workflow_dispatch:
-  # push:
-  #   branches:
-  #     - main  # Trigger the pipeline on push to the 'main' branch
+  push:
+    branches:
+      - main  # Trigger the pipeline on push to the 'main' branch
 
 jobs:
   deploy:
