@@ -46,7 +46,15 @@ jobs:
         run: |
          docker logs ${{ steps.container_name.outputs.container_name }}
     
-
+      - name: Wait for PostgreSQL to be ready
+        run: |
+           echo "Waiting for PostgreSQL to be ready..."
+           until docker exec ${{ steps.get_container_name.outputs.container_name }} pg_isready -U postgres -h localhost -p 5432; do
+           echo "Waiting for PostgreSQL to be ready..."
+           sleep 5
+           done
+           echo "PostgreSQL is ready!"
+           
       - name: Test PostgreSQL Connection
         run: PGPASSWORD=admin123 psql -h 127.0.0.1 -U postgres -d basic3tier -c "SELECT 1;"
      # Step to check out the repository
