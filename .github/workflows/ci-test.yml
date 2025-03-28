@@ -16,9 +16,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up .NET SDK
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '7.0'
+         dotnet-version: '7.0'
+
+      - name: List current directory and files
+        run: |
+         pwd
+         ls -R
 
       - name: Restore dependencies
         run: dotnet restore ./api/Basic3Tier.Core.Tests/Basic3Tier.Core.Tests.csproj
