@@ -11,31 +11,20 @@ jobs:
  build-test-and-docker:
   runs-on: ubuntu-latest
   services:
-    postgres:
-      image: postgres:15-alpine
-      env:
-        POSTGRES_USER: postgres
-        POSTGRES_PASSWORD: admin123
-        POSTGRES_DB: basic3tier
-      ports:
-        - 5432:5432
-      options: >-
-        --health-cmd="pg_isready -U postgres" 
-        --health-interval=10s 
-        --health-timeout=5s 
-        --health-retries=5
-
-  env:
-    DB_HOST: postgres
-    DB_PORT: 5432
-    DB_NAME: basic3tier
-    DB_USER: postgres
-    DB_PASSWORD: admin123
-
+      postgres:
+        image: postgres:15-alpine
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: admin123
+          POSTGRES_DB: basic3tier
+        ports:
+          - 5432:5432
   steps:
-    - name: Check Memory Usage
-      run: free -m
-
     - name: Start PostgreSQL container with increased memory
       run: |
         docker run -d --memory="2g" --name steps.get_container_name.outputs.container_name postgres:latest  
