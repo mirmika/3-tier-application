@@ -50,14 +50,15 @@ jobs:
       run: |
        container_name=${{ steps.get_container_name.outputs.container_name }}
        echo "Checking if PostgreSQL is running in container: $container_name"
-        
-        # Run the command without -it flags since GitHub Actions does not have TTY support
-        if [ -z "$container_name" ]; then
-          echo "Error: No container found"
-          exit 1
-        fi
+      
+       # Run the command without -it flags since GitHub Actions does not have TTY support
+       if [ -z "$container_name" ]; then
+        echo "Error: No container found"
+        exit 1
+       fi
 
-        docker exec $container_name sh -c "ps aux | grep postgres"
+       # Checking PostgreSQL process inside the container
+       docker exec $container_name sh -c "ps aux | grep postgres"
 
     - name: Modify PostgreSQL listen_addresses
       run: |
