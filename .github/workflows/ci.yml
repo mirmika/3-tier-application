@@ -82,9 +82,8 @@ jobs:
       run: |
        container_name=${{ steps.get_container_name.outputs.container_name }}
        echo "Restarting PostgreSQL inside the container"
-    
-       # Run pg_ctl as the postgres user
-       docker exec $container_name su - postgres -c "pg_ctl restart"
+       # Set the PGDATA environment variable and run pg_ctl as the postgres user
+       docker exec $container_name su - postgres -c "PGDATA=/var/lib/postgresql/data pg_ctl restart"
 
     - name: View PostgreSQL Logs
       run: |
