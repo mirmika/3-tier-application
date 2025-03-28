@@ -30,6 +30,9 @@ jobs:
     steps:
       - name: Check Memory Usage
         run: free -m
+        
+      - name: View PostgreSQL Logs
+        run: docker logs postgres-ci
 
       - name: Test PostgreSQL Connection
         run: PGPASSWORD=admin123 psql -h 127.0.0.1 -U postgres -d basic3tier -c "SELECT 1;"
@@ -37,9 +40,6 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: View PostgreSQL Logs
-        run: docker logs postgres-ci
-          
       # Set up .NET SDK
       - name: Set up .NET
         uses: actions/setup-dotnet@v3
