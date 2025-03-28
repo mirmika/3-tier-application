@@ -39,7 +39,7 @@ jobs:
         run: docker ps -a --format "{{.Names}}"  
 
       - name: View PostgreSQL Logs
-        run: docker logs 2a6bec92405f4a5a9072dc7073d8ce32_postgres15alpine_51f8c2
+        run: docker logs "{{.Names}}"
     
 
       - name: Test PostgreSQL Connection
