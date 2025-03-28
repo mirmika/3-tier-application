@@ -45,15 +45,11 @@ jobs:
       - name: View PostgreSQL Logs
         run: |
          docker logs ${{ steps.get_container_name.outputs.container_name }}
-         
-      - name: View PostgreSQL Logs
-        run: |
-         docker logs postgres
 
       - name: Test PostgreSQL Connection
         run: |
          echo "Waiting for PostgreSQL connection..."
-         until PGPASSWORD=admin123 psql -h postgres -U postgres -d basic3tier -c "SELECT 1;" 2>/dev/null; do
+         until PGPASSWORD=admin123 psql -h ${{ steps.get_container_name.outputs.container_name }} -U postgres -d basic3tier -c "SELECT 1;" 2>/dev/null; do
          echo "Waiting for PostgreSQL to be ready..."
          sleep 5
          done
