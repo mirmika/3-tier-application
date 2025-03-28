@@ -39,19 +39,35 @@ jobs:
           sudo docker pull mirmika/backend:latest
           sudo docker pull mirmika/frontend:latest
 
-          # Stop and remove old containers if they exist
-          sudo docker rm -f backend frontend || true
+         # Create the Docker network (ensure it exists)
+    - name: Create Docker network
+      run: |
+       docker network create my3tier || true  # Create the network if it doesn't exist
 
-         # Run the backend container on port 5000
-         sudo docker run -d --name backend-api --network my3tier -p 5000:5000 \
-         -e DATABASE_URL=postgresql://postgres:admin123@my-db:5432/basic3tier \
-          mirmika/backend:latest
+      # Remove existing containers (if any)
+    - name: Remove existing backend-api container
+      run: |
+       docker rm -f backend-api || true  # Remove existing container if present
 
-         # Run the frontend container on port 80
-         sudo docker run -d --name frontend-api --network my3tier -p 80:80 \
-         mirmika/frontend:latest
-         
-        EOF
+    - name: Remove existing frontend-api container
+      run: |
+       docker rm -f frontend-api || true  # Remove existing container if present
+
+     # Run the backend container on port 5000
+    - name: Run backend container
+      run: |
+       sudo docker run -d --name backend-api --network my3tier -p 5000:5000 \
+       -e DATABASE_URL=postgresql://postgres:admin123@my-db:5432/basic3tier \
+        mirmika/backend:latest
+
+    # Run the frontend container on port 80
+    - name: Run frontend container
+      run: |
+       sudo docker run -d --name frontend-api --network my3tier -p 80:80 \
+       -e DATABASE_URL=postgresql://postgres:admin123@my-db:5432/basic3tier \
+       mirmika/frontend:latest
+
+       EOF
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
