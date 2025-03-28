@@ -32,6 +32,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Create Docker Network
+        run: |
+          docker network create mynetwork
+
+      - name: Start PostgreSQL container and connect to mynetwork
+        run: |
+          docker run -d --name postgres \
+            --network mynetwork \
+            -e POSTGRES_USER=postgres \
+            -e POSTGRES_PASSWORD=admin123 \
+            -e POSTGRES_DB=basic3tier \
+            postgres:15-alpine
+
       - name: List all running containers
         run: docker ps -a
 
