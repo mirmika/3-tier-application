@@ -15,7 +15,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Create Docker network (only needed if running multiple containers)
       - name: Create Docker network
         run: |
           docker network create my3tier
@@ -36,24 +35,22 @@ jobs:
 
       # Debug PostgreSQL Logs
       - name: Debug PostgreSQL Logs
-        run: docker logs postgres  # Logs for manually started PostgreSQL container
+        run: docker logs postgres  
 
-      # Verify PostgreSQL Service is Running
-      - name: Verify PostgreSQL Service is Running
+      - name: Run Postgres
         run: |
-          echo "Checking if PostgreSQL is ready..."
-          until PGPASSWORD=admin123 psql -h postgres -U postgres -d basic3tier -c "SELECT 1;" 2>/dev/null; do
-            echo "Waiting for PostgreSQL..."
-            sleep 15
-          done
-          echo "PostgreSQL is ready!"
-
+         docker run -d --name my-db --network my3tier -p 5432:5432 \
+         -e POSTGRES_DB=basic3tier \
+         -e POSTGRES_USER=postgres \
+         -e POSTGRES_PASSWORD=admin123 \
+         postgres
+         
       # Build and test Backend API
       - name: Build and test Backend API
         run: |
           cd ./api
           docker build -t mirmika/backend:latest .
-
+          
       # Build and test Frontend UI
       - name: Build and test Frontend UI
         run: |
