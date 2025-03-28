@@ -45,23 +45,6 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      # Set up .NET SDK
-      - name: Set up .NET
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: '7.0.x'
-
-      # Run tests and build .NET project
-      - name: Restore dependencies
-        run: |
-           dotnet restore ./api/Basic3Tier.Core/Basic3Tier.Core.csproj  
-           dotnet restore ./api/Tests/Basic3Tier.Core.Tests/Basic3Tier.Core.Tests.csproj
- 
-      - name: Build the project
-        run: |
-           dotnet build ./api/Basic3Tier.Core/Basic3Tier.Core.csproj --no-restore --configuration Release
-           dotnet build ./api/Tests/Basic3Tier.Core.Tests/Basic3Tier.Core.Tests.csproj --no-restore --configuration Release
-
       # Upload .NET test results as artifacts
       - name: Upload dotnet test results
         uses: actions/upload-artifact@v4
@@ -90,6 +73,20 @@ jobs:
           docker build -t mirmika/frontend:latest . 
           docker run --rm mirmika/frontend:latest
 
+      # Tag Docker images with commit SHA
+      - name: Tag Docker Images with commit SHA
+        run: |
+          docker tag mirmika/backend:latest mirmika/backend:${{ github.sha }}
+          docker tag mirmika/frontend:latest mirmika/frontend:${{ github.sha }}
+
+      # Push Docker Images to DockerHub
+      - name: Push Docker Images to DockerHub
+        run: |
+          docker push mirmika/backend:latest
+          docker push mirmika/frontend:latest
+          docker push mirmika/backend:${{ github.sha }}
+          docker push mirmika/frontend:${{ github.sha }}
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -111,30 +108,18 @@ jobs:
           key: ${{ runner.os }}-sonar-scanner
           restore-keys: ${{ runner.os }}-sonar-scanner
 
-      - name: Install SonarQube scanner
-        if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
-        shell: powershell
+      - name: Install SonarScanner
         run: |
-          New-Item -Path .\.sonar\scanner -ItemType Directory
-          dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
+          dotnet tool install --global dotnet-sonarscanner
 
       - name: Build and analyze
-        shell: powershell
+        shell: bash
         run: |
-          .\.sonar\scanner\dotnet-sonarscanner begin /k:"3-tier-application" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}"
-          dotnet build
-          .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+          # Run SonarQube scan
+          dotnet-sonarscanner begin /k:"3-tier-application" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}"
 
-      # Tag Docker images with commit SHA
-      - name: Tag Docker Images with commit SHA
-        run: |
-          docker tag mirmika/backend:latest mirmika/backend:${{ github.sha }}
-          docker tag mirmika/frontend:latest mirmika/frontend:${{ github.sha }}
+          # Specify your project or solution path in the build command
+          dotnet build ./api/Basic3Tier.Core/Basic3Tier.Core.csproj --configuration Release
 
-      # Push Docker Images to DockerHub
-      - name: Push Docker Images to DockerHub
-        run: |
-          docker push mirmika/backend:latest
-          docker push mirmika/frontend:latest
-          docker push mirmika/backend:${{ github.sha }}
-          docker push mirmika/frontend:${{ github.sha }}
+          # End SonarQube scan
+          dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"        
