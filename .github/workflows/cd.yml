@@ -75,7 +75,11 @@ jobs:
     - name: Build and analyze
       shell: bash
       run: |
-          # Run SonarQube scan
-          dotnet-sonarscanner begin /k:"3-tier-application" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}"
-          dotnet build
-          dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"   
+        # Run SonarQube scan
+        dotnet-sonarscanner begin /k:"3-tier-application" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}"
+
+        # Specify your project or solution path in the build command
+        dotnet build ./api/Basic3Tier.Core/Basic3Tier.Core.csproj --configuration Release
+
+        # End SonarQube scan
+        dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
