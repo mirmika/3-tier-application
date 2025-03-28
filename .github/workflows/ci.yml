@@ -36,7 +36,10 @@ jobs:
      # Step to check out the repository
       - name: Check out repository
         uses: actions/checkout@v4
-        
+
+      - name: View PostgreSQL Logs
+        run: docker logs postgres-ci
+          
       # Set up .NET SDK
       - name: Set up .NET
         uses: actions/setup-dotnet@v3
