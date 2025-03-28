@@ -40,11 +40,11 @@ jobs:
       run: docker ps -a
 
     - name: Get Container Name
-      id: get_container_name  
+      id: get_container_name  # Ensure this is your step's id
       run: |
-        container_name=$(docker ps -a --filter "ancestor=postgres:latest" --format "{{.Names}}")
-        echo "Container name is: $container_name"
-        echo "::set-output name=container_name::$container_name"
+          container_name=$(docker ps -a --format "{{.Names}}")
+          echo "Container name is: $container_name"
+          echo "::set-output name=container_name::$container_name"
 
     - name: Check if PostgreSQL is running
       run: |
