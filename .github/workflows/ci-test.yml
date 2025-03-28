@@ -44,7 +44,7 @@ jobs:
           dotnet-version: '7.0'
 
       - name: Restore dependencies
-        run: dotnet restore ./Basic3Tier.Infrastructure.Tests/Basic3Tier.Infrastructure.Tests.csproj
+        run: dotnet restore ./api/Tests/Basic3Tier.Infrastructure.Tests/Basic3Tier.Infrastructure.Tests.csproj
 
       - name: Run unit tests for Infrastructure
-        run: dotnet test ./Basic3Tier.Infrastructure.Tests/Basic3Tier.Infrastructure.Tests.csproj --configuration Release --no-build --logger "trx;LogFileName=test-results-infrastructure.trx"
+        run: dotnet test ./api/Tests/Basic3Tier.Infrastructure.Tests/Basic3Tier.Infrastructure.Tests.csproj
