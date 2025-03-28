@@ -21,7 +21,7 @@ jobs:
           - 5432:5432
 
     env:
-      DB_HOST: localhost
+      DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: basic3tier
       DB_USER: postgres
@@ -49,14 +49,15 @@ jobs:
       - name: Wait for PostgreSQL to be ready
         run: |
          echo "Waiting for PostgreSQL to be ready..."
-         until docker exec ${{ steps.get_container_name.outputs.container_name }} pg_isready -U postgres -h localhost -p 5432; do
+         until docker exec ${{ steps.get_container_name.outputs.container_name }} pg_isready -U postgres -h postgres -p 5432; do
          echo "Waiting for PostgreSQL to be ready..."
          sleep 5
          done
          echo "PostgreSQL is ready!"
 
       - name: Test PostgreSQL Connection
-        run: PGPASSWORD=admin123 psql -h 127.0.0.1 -U postgres -d basic3tier -c "SELECT 1;"
+        run: PGPASSWORD=admin123 psql -h postgres -U postgres -d basic3tier -c "SELECT 1;"
+
      # Step to check out the repository
       - name: Check out repository
         uses: actions/checkout@v4
