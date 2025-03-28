@@ -80,9 +80,11 @@ jobs:
     # Step 3: Restart PostgreSQL inside the container to apply changes
     - name: Restart PostgreSQL
       run: |
-        container_name=${{ steps.get_container_name.outputs.container_name }}
-        echo "Restarting PostgreSQL inside the container"
-        docker exec $container_name sh -c "pg_ctl restart"
+       container_name=${{ steps.get_container_name.outputs.container_name }}
+       echo "Restarting PostgreSQL inside the container"
+    
+       # Run pg_ctl as the postgres user
+       docker exec $container_name su - postgres -c "pg_ctl restart"
 
     - name: View PostgreSQL Logs
       run: |
