@@ -27,7 +27,6 @@ jobs:
          --health-retries=5
          --memory=2g
          --cpus=2
-         --mount source=postgres_data,target=/var/lib/postgresql/data
 
     steps:
       - name: Checkout repository
