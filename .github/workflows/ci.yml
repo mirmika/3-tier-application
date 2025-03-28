@@ -36,6 +36,13 @@ jobs:
     - name: Check Memory Usage
       run: free -m
 
+    - name: Start PostgreSQL container with increased memory
+      run: |
+        docker run -d --memory="2g" --name your_postgres_container postgres:latest  
+
+    - name: Check Again Memory Usage
+      run: free -m    
+
     - name: List all running containers
       run: docker ps -a
 
