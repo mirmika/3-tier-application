@@ -35,6 +35,9 @@ jobs:
       - name: List all running containers
         run: docker ps -a
 
+      - name: List Docker container names
+        run: docker ps -a --format "{{.Names}}"  
+
       - name: View PostgreSQL Logs
         run: docker logs postgres-ci
     
