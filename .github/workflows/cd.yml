@@ -43,8 +43,9 @@ jobs:
        docker network create my3tier || true  # Create the network if it doesn't exist
 
        # Remove existing containers (if any)
-       docker rm -f backend-api || true  # Remove existing container if present
-       docker rm -f frontend-api || true  # Remove existing container if present
+       docker rm -f backend-api || true  # Remove existing backend container if present
+       docker rm -f frontend-api || true  # Remove existing frontend container if present
+       docker rm -f my-db || true  # Remove existing postgres container if present
 
        #Run the postgres
        sudo docker run -d --name my-db --network my3tier -e POSTGRES_DB=basic3tier -e POSTGRES_PASSWORD=admin123 -e POSTGRES_USER=postgres -p 5432:5432 postgres:latest
