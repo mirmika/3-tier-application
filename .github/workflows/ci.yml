@@ -45,7 +45,11 @@ jobs:
       - name: View PostgreSQL Logs
         run: |
          docker logs ${{ steps.get_container_name.outputs.container_name }}
-    
+         
+      - name: View PostgreSQL Logs
+        run: |
+         docker logs postgres
+
       - name: Test PostgreSQL Connection
         run: |
          echo "Waiting for PostgreSQL connection..."
