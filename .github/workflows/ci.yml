@@ -40,12 +40,12 @@ jobs:
 
       - name: Verify PostgreSQL Service is Running
         run: |
-          echo "Checking if PostgreSQL is ready..."
-          until PGPASSWORD=admin123 psql -h postgres -U postgres -d basic3tier -c "SELECT 1;" 2>/dev/null; do
-            echo "Waiting for PostgreSQL..."
-            sleep 5
-          done
-          echo "PostgreSQL is ready!"
+         echo "Checking if PostgreSQL is ready..."
+         until PGPASSWORD=admin123 psql -h postgres -U postgres -d basic3tier -c "SELECT 1;"; do
+         echo "Waiting for PostgreSQL..."
+         sleep 15
+         done
+         echo "PostgreSQL is ready!"
 
       - name: Build and test Backend API
         run: |
