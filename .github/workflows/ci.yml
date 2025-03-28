@@ -27,17 +27,23 @@ jobs:
           --health-retries=5
           --memory=4g
           --cpus=4
-        # Adding custom network
-        networks:
-          - mynetwork
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Create Docker Network
+      - name: Create Docker network
         run: |
-          docker network create mynetwork
+         docker network create my3tier
+         
+      - name: Start PostgreSQL container on custom network
+        run: |
+         docker run -d --name postgres \
+         --network my3tier \
+         -e POSTGRES_USER=postgres \
+         -e POSTGRES_PASSWORD=admin123 \
+         -e POSTGRES_DB=basic3tier \
+         postgres:15-alpine
 
       - name: List all running containers
         run: docker ps -a
