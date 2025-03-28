@@ -67,7 +67,7 @@ jobs:
       
        # List the directory structure to find the correct configuration file
        docker exec $container_name sh -c "ls -l /var/lib/postgresql/data"
-       docker exec $container_name sh -c "ls -l /etc/postgresql"  
+       # List the directory structure to find the correct configuration file
 
     - name: Modify PostgreSQL listen_addresses
       run: |
