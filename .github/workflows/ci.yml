@@ -54,13 +54,13 @@ jobs:
          # Run the command without -it flags since GitHub Actions does not have TTY support
          docker exec $container_name sh -c "ps aux | grep postgres"
 
-       # Step 2: Modify PostgreSQL Configuration (listen_addresses)
       - name: Modify PostgreSQL listen_addresses
         run: |
-          container_name=$(docker ps -q --filter "ancestor=postgres:latest")
-          echo "Modifying listen_addresses to '*'"
-          docker exec -it $container_name bash -c "sed -i 's/^#listen_addresses =.*/listen_addresses = '*'/' /var/lib/postgresql/data/postgresql.conf.sample"
-          docker exec -it $container_name bash -c "sed -i 's/127.0.0.1/0.0.0.0/g' /var/lib/postgresql/data/pg_hba.conf"
+         container_name=$(docker ps -q --filter "ancestor=postgres:latest")
+         echo "Modifying listen_addresses to '*'"
+        
+         docker exec $container_name sh -c "sed -i 's/^#listen_addresses =.*/listen_addresses = '*'/' /var/lib/postgresql/data/postgresql.conf.sample"
+         docker exec $container_name sh -c "sed -i 's/127.0.0.1/0.0.0.0/g' /var/lib/postgresql/data/pg_hba.conf"
 
        # Step 3: Restart PostgreSQL inside the container to apply changes
       - name: Restart PostgreSQL
