@@ -26,7 +26,11 @@ jobs:
       DB_NAME: basic3tier
       DB_USER: postgres
       DB_PASSWORD: admin123
-      #SONAR_SCANNER_OPTS: "-Dhttp.nonProxyHosts=\"*.domain.com\""
+      options: >-
+          --health-cmd="pg_isready -U postgres" 
+          --health-interval=10s 
+          --health-timeout=5s 
+          --health-retries=5
 
     steps:
       - name: Check Memory Usage
@@ -42,10 +46,26 @@ jobs:
          echo "Container name is: $container_name"
          echo "::set-output name=container_name::$container_name"
 
-      - name: Exec into the Backend Container
+      - name: Check if PostgreSQL is running
         run: |
-         container_name=${{ steps.get_container_name.outputs.container_name }}
-         docker exec $container_name bash -c "psql -h $container_name -U postgres -d basic3tier -c 'SELECT 1;'"
+          container_name=$(docker ps -q --filter "ancestor=postgres:latest")
+          echo "Checking if PostgreSQL is running in container: $container_name"
+          docker exec -it $container_name bash -c "ps aux | grep postgres"   
+
+       # Step 2: Modify PostgreSQL Configuration (listen_addresses)
+      - name: Modify PostgreSQL listen_addresses
+        run: |
+          container_name=$(docker ps -q --filter "ancestor=postgres:latest")
+          echo "Modifying listen_addresses to '*'"
+          docker exec -it $container_name bash -c "sed -i 's/^#listen_addresses =.*/listen_addresses = '*'/' /var/lib/postgresql/data/postgresql.conf.sample"
+          docker exec -it $container_name bash -c "sed -i 's/127.0.0.1/0.0.0.0/g' /var/lib/postgresql/data/pg_hba.conf"
+
+       # Step 3: Restart PostgreSQL inside the container to apply changes
+      - name: Restart PostgreSQL
+        run: |
+          container_name=$(docker ps -q --filter "ancestor=postgres:latest")
+          echo "Restarting PostgreSQL inside the container"
+          docker exec -it $container_name bash -c "pg_ctl restart"
 
       - name: View PostgreSQL Logs
         run: |
