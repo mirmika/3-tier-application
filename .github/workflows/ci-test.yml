@@ -21,10 +21,10 @@ jobs:
           dotnet-version: '7.0'
 
       - name: Restore dependencies
-        run: dotnet restore ./Basic3Tier.Core.Tests/Basic3Tier.Core.Tests.csproj
-
+        run: dotnet restore ./api/Basic3Tier.Core.Tests/Basic3Tier.Core.Tests.csproj
       - name: Run unit tests for Core
-        run: dotnet test ./Basic3Tier.Core.Tests/Basic3Tier.Core.Tests.csproj --configuration Release --no-build --logger "trx;LogFileName=test-results-core.trx"
+        run: dotnet test ./api/Basic3Tier.Core.Tests/Basic3Tier.Core.Tests.csproj 
+  
 
   test-infrastructure:
     runs-on: ubuntu-latest
