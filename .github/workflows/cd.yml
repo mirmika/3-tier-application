@@ -42,11 +42,11 @@ jobs:
           # Stop and remove old containers if they exist
           sudo docker rm -f backend frontend || true
 
-          # Run the backend container on port 5000
-          sudo docker run -d --name my-api --network my3tier -p 5000:5000 --name backend mirmika/backend:latest
+         # Run the backend container on port 5000
+         sudo docker run -d --name backend-api --network my3tier -p 5000:5000 mirmika/backend:latest
 
-          # Run the frontend container on port 80
-          sudo docker run -d --name my-api --network my3tier -p 80:80 --name frontend mirmika/frontend:latest
+         # Run the frontend container on port 80
+         sudo docker run -d --name frontend-ui --network my3tier -p 80:80 mirmika/frontend:latest
         EOF
     - name: Set up JDK 17
       uses: actions/setup-java@v4
