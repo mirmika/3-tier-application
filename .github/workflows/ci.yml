@@ -27,24 +27,21 @@ jobs:
         with:
           dotnet-version: '7.0.x'
 
-      - name: Start PostgreSQL Database
-        run: |
-          docker run -d --name postgres-ci \
-            -e POSTGRES_USER=${DB_USER} \
-            -e POSTGRES_PASSWORD=${DB_PASSWORD} \
-            -e POSTGRES_DB=${DB_NAME} \
-            -p 5432:5432 postgres:15    
-
-      - name: Verify PostgreSQL is Running
-        run: docker ps | grep postgres     
-
       - name: Set Database Environment Variables
         run: |
           echo "DB_HOST=localhost" >> $GITHUB_ENV
           echo "DB_PORT=5432" >> $GITHUB_ENV
           echo "DB_NAME=basic3tier" >> $GITHUB_ENV
           echo "DB_USER=postgres" >> $GITHUB_ENV
-          echo "DB_PASSWORD=admin123" >> $GITHUB_ENV   
+          echo "DB_PASSWORD=admin123" >> $GITHUB_ENV       
+
+      - name: Start PostgreSQL Database
+        run: |
+          docker run -d --name postgres-ci \
+            -e POSTGRES_USER=${DB_USER} \
+            -e POSTGRES_PASSWORD=${DB_PASSWORD} \
+            -e POSTGRES_DB=${DB_NAME} \
+            -p 5432:5432 postgres:15      
 
       - name: Wait for PostgreSQL to be Ready
         run: |
@@ -54,43 +51,37 @@ jobs:
             sleep 2
           done
           echo "PostgreSQL did not start in time" && exit 1
+      - name: Verify PostgreSQL is Running
+        run: docker ps | grep postgres   
 
-      - name: Restore dependencies
-        run: |
-          dotnet restore ./api/Basic3Tier.Core/Basic3Tier.Core.csproj  
-          dotnet restore ./api/Tests/Basic3Tier.Core.Tests/Basic3Tier.Core.Tests.csproj
+      - name: Test PostgreSQL Connection
+        run: PGPASSWORD=admin123 psql -h 127.0.0.1 -U postgres -d basic3tier -c "SELECT 1;"
 
-      - name: Build the project
-        run: |
-          dotnet build ./api/Basic3Tier.Core/Basic3Tier.Core.csproj --no-restore --configuration Release
-          dotnet build ./api/Tests/Basic3Tier.Core.Tests/Basic3Tier.Core.Tests.csproj --no-restore --configuration Release
-
-      - name: List test output files (debugging)
-        run: ls -alh ./api/Tests/Basic3Tier.Core.Tests/bin/Release/net7.0/
-
+      - uses: actions/checkout@v4
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+         dotnet-version: '6.0.x'
+      - name: Install dependencies
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --no-restore
+      - name: Test with the dotnet CLI
+        run: dotnet test --no-build
       - name: Run tests
         run: |
-          dotnet test ./api/Tests/Basic3Tier.Core.Tests/Basic3Tier.Core.Tests.csproj --configuration Release --logger "trx;LogFileName=test_results.trx"
-
-      - name: Upload test results (if failure occurs)
-        if: failure()
+          dotnet test
+      - name: Upload dotnet test results
         uses: actions/upload-artifact@v4
         with:
-          name: test-results
-          path: ./api/Tests/Basic3Tier.Core.Tests/TestResults/test_results.trx
+            name: dotnet-results-${{ matrix.dotnet-version }}
+            path: TestResults-${{ matrix.dotnet-version }}    
 
       - name: Set up DockerHub credentials
         uses: docker/login-action@v2.2.0
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: List directory structure for debugging
-        run: |
-          echo "Listing current directory"
-          ls -alh
-          echo "Listing contents of api directory"
-          ls -alh ./api
 
       - name: Build and test Backend API
         run: |
