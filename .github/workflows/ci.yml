@@ -3,11 +3,10 @@ name: CI Pipeline
 on:
   push:
     branches:
-      - main  # Trigger the pipeline on push to the 'main' branch
+      - main
   pull_request:
     branches:
-      - main  # Trigger the pipeline on a PR to 'main' branch
-
+      - main 
 jobs:
   build-test-and-docker:
     runs-on: ubuntu-latest
@@ -21,97 +20,74 @@ jobs:
         ports:
           - 5432:5432
 
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_NAME: basic3tier
+      DB_USER: postgres
+      DB_PASSWORD: admin123
+
     steps:
+      # Step to check out the repository
       - name: Check out repository
         uses: actions/checkout@v4
 
+      # Set up .NET SDK
       - name: Set up .NET
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '7.0.x'
 
-      - name: Set Database Environment Variables
-        run: |
-          echo "DB_HOST=localhost" >> $GITHUB_ENV
-          echo "DB_PORT=5432" >> $GITHUB_ENV
-          echo "DB_NAME=basic3tier" >> $GITHUB_ENV
-          echo "DB_USER=postgres" >> $GITHUB_ENV
-          echo "DB_PASSWORD=admin123" >> $GITHUB_ENV       
-
-      - name: Start PostgreSQL Database
-        run: |
-          docker run -d --name postgres-ci \
-            -e POSTGRES_USER=${DB_USER} \
-            -e POSTGRES_PASSWORD=${DB_PASSWORD} \
-            -e POSTGRES_DB=${DB_NAME} \
-            -p 5432:5432 postgres:15      
-
-      - name: Wait for PostgreSQL to be Ready
-        run: |
-          for i in {1..30}; do
-            nc -zv 127.0.0.1 5432 && echo "PostgreSQL is up!" && exit 0
-            echo "Waiting for PostgreSQL..."
-            sleep 2
-          done
-          echo "PostgreSQL did not start in time" && exit 1
-      - name: Verify PostgreSQL is Running
-        run: docker ps | grep postgres   
-
-      - name: Check Memory Usage
-        run: free -m
-
-      - name: Test PostgreSQL Connection
-        run: PGPASSWORD=admin123 psql -h 127.0.0.1 -U postgres -d basic3tier -c "SELECT 1;"
-
-      - uses: actions/checkout@v4
-      - name: Setup dotnet
-        uses: actions/setup-dotnet@v4
-        with:
-         dotnet-version: '6.0.x'
+      # Run tests and build .NET project
       - name: Install dependencies
         run: dotnet restore
       - name: Build
         run: dotnet build --no-restore
       - name: Test with the dotnet CLI
         run: dotnet test --no-build
-      - name: Run tests
-        run: |
-          dotnet test
+
+      # Upload .NET test results as artifacts
       - name: Upload dotnet test results
         uses: actions/upload-artifact@v4
         with:
-            name: dotnet-results-${{ matrix.dotnet-version }}
-            path: TestResults-${{ matrix.dotnet-version }}    
+          name: dotnet-results
+          path: TestResults
 
+      # Set up DockerHub credentials
       - name: Set up DockerHub credentials
         uses: docker/login-action@v2.2.0
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      # Build and test Backend API
       - name: Build and test Backend API
         run: |
           cd ./api
           docker build -t mirmika/backend:latest .
           docker run --rm mirmika/backend:latest
 
+      # Build and test Frontend UI
       - name: Build and test Frontend UI
         run: |
           cd ./ui 
           docker build -t mirmika/frontend:latest . 
-          docker run --rm mirmika/frontend:latest 
+          docker run --rm mirmika/frontend:latest
 
+      # Scan code with SonarQube
       - name: Scan code with SonarQube
-        uses: sonarsource/sonarcloud-github-action@master
+        uses: sonarsource/sonarcloud-github-action@main
         with:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
 
+      # Tag Docker images with commit SHA
       - name: Tag Docker Images with commit SHA
         run: |
           docker tag mirmika/backend:latest mirmika/backend:${{ github.sha }}
           docker tag mirmika/frontend:latest mirmika/frontend:${{ github.sha }}
 
+      # Push Docker Images to DockerHub
       - name: Push Docker Images to DockerHub
         run: |
           docker push mirmika/backend:latest
