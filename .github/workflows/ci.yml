@@ -25,6 +25,9 @@ jobs:
         ports:
           - 5432:5432
   steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
     - name: Start PostgreSQL container with increased memory
       run: |
         docker run -d --memory="2g" --name steps.get_container_name.outputs.container_name postgres:latest  
