@@ -12,39 +12,6 @@ jobs:
   build-test-and-docker:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Create Docker network
-        run: |
-          docker network create my3tier
-
-      # Start PostgreSQL container on the custom network
-      - name: Start PostgreSQL container on custom network
-        run: |
-          docker run -d --name postgres \
-            --network my3tier \
-            -e POSTGRES_USER=postgres \
-            -e POSTGRES_PASSWORD=admin123 \
-            -e POSTGRES_DB=basic3tier \
-            postgres:15-alpine
-
-      # List all running containers
-      - name: List all running containers
-        run: docker ps -a
-
-      # Debug PostgreSQL Logs
-      - name: Debug PostgreSQL Logs
-        run: docker logs postgres  
-
-      - name: Run Postgres
-        run: |
-         docker run -d --name my-db --network my3tier -p 5432:5432 \
-         -e POSTGRES_DB=basic3tier \
-         -e POSTGRES_USER=postgres \
-         -e POSTGRES_PASSWORD=admin123 \
-           postgres
-         
       # Build and test Backend API
       - name: Build and test Backend API
         run: |
