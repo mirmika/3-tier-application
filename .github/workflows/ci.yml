@@ -31,7 +31,7 @@ jobs:
       - name: Tag Docker Images with commit SHA
         run: |
           docker tag mirmika/basic3tier-api:latest mirmika/basic3tier-api:${{ github.sha }}
-          docker tag mirmika/basic3tier-ui:latest mirmika/basic3tier-ui:latest:${{ github.sha }}
+          docker tag mirmika/basic3tier-ui:latest mirmika/basic3tier-ui:${{ github.sha }}
 
       # Log in to Docker Hub
       - name: Log in to Docker Hub
