@@ -40,36 +40,36 @@ jobs:
               sudo apt install -y docker.io
               sudo systemctl start docker
               sudo systemctl enable docker
-          else
-              echo "Docker is already installed."
-          fi
+        else
+         echo "Docker is already installed."
+        fi
       
-          # Ensure user has Docker permissions
-          sudo usermod -aG docker ubuntu
+        # Ensure user has Docker permissions
+        sudo usermod -aG docker ubuntu
       
-          # Pull latest Docker images
-          sudo docker pull mirmika/backend:latest
-          sudo docker pull mirmika/frontend:latest
+        # Pull latest Docker images
+        sudo docker pull mirmika/backend:latest
+        sudo docker pull mirmika/frontend:latest
       
-          # Create the Docker network
-          docker network create my3tier || true 
+        # Create the Docker network
+        docker network create my3tier || true 
       
-          # Remove existing containers
-          docker rm -f backend-api || true
-          docker rm -f frontend-api || true
-          docker rm -f my-db || true
+        # Remove existing containers
+        docker rm -f backend-api || true
+        docker rm -f frontend-api || true
+        docker rm -f my-db || true
       
-          # Run PostgreSQL
-          sudo docker run -d --name my-db --network my3tier -e POSTGRES_DB=basic3tier -e POSTGRES_PASSWORD=admin123 -e POSTGRES_USER=postgres -p 5432:5432 postgres:latest
+        # Run PostgreSQL
+        sudo docker run -d --name my-db --network my3tier -e POSTGRES_DB=basic3tier -e POSTGRES_PASSWORD=admin123 -e POSTGRES_USER=postgres -p 5432:5432 postgres:latest
       
-          # Run backend
-          sudo docker run -d --name backend-api --network my3tier -p 5000:80 \
-          -e DATABASE_URL=postgresql://postgres:admin123@my-db:5432/basic3tier \
-          mirmika/backend:latest
+        # Run backend
+        sudo docker run -d --name backend-api --network my3tier -p 5000:80 \
+        -e DATABASE_URL=postgresql://postgres:admin123@my-db:5432/basic3tier \
+        mirmika/backend:latest
       
-          # Run frontend
-          sudo docker run -d --name frontend-api --network my3tier -p 80:80 \
-          mirmika/frontend:latest
+        # Run frontend
+        sudo docker run -d --name frontend-api --network my3tier -p 80:80 \
+        mirmika/frontend:latest
        EOF
       
     - name: Set up JDK 17
