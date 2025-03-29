@@ -64,11 +64,12 @@ jobs:
       
         # Run backend
         sudo docker run -d --name backend-api --network my3tier -p 5000:80 \
-        -e DATABASE_URL=postgresql://postgres:admin123@my-db:5432/basic3tier \
+        -e DATABASE_URL=localhost://postgres:admin123@my-db:5432/basic3tier \
         mirmika/backend:latest
       
         # Run frontend
         sudo docker run -d --name frontend-api --network my3tier -p 80:80 \
+        -e DATABASE_URL=localhost:5000 \
         mirmika/frontend:latest
        EOF
       
