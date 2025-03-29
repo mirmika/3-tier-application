@@ -29,41 +29,53 @@ jobs:
       run: |
         ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP }} >> ~/.ssh/known_hosts
 
-    - name: Deploy Docker Containers to EC2
-      run: |
-       ssh ubuntu@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
-       # Ensure user has Docker permissions (add to the docker group)
-       sudo usermod -aG docker ubuntu
+        - name: Deploy Docker Containers to EC2
+        run: |
+         ssh ubuntu@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
+         # Update packages and install Docker if not already installed
+         if ! command -v docker &> /dev/null
+         then
+             echo "Docker not found. Installing..."
+             sudo apt update
+             sudo apt install -y docker.io
+             sudo systemctl start docker
+             sudo systemctl enable docker
+         else
+             echo "Docker is already installed."
+         fi
+  
+         # Ensure user has Docker permissions (add to the docker group)
+         sudo usermod -aG docker ubuntu
 
-       # Pull latest Docker images
-       sudo docker pull mirmika/backend:latest
-       sudo docker pull mirmika/frontend:latest
+        # Pull latest Docker images
+        sudo docker pull mirmika/backend:latest
+        sudo docker pull mirmika/frontend:latest
 
-       # Create the Docker network (ensure it exists)
-       docker network create my3tier || true  # Create the network if it doesn't exist
+        # Create the Docker network (ensure it exists)
+        docker network create my3tier || true  # Create the network if it doesn't exist
 
-       # Remove existing containers (if any)
-       docker rm -f backend-api || true  # Remove existing backend container if present
-       docker rm -f frontend-api || true  # Remove existing frontend container if present
-       docker rm -f my-db || true  # Remove existing postgres container if present
+        # Remove existing containers (if any)
+        docker rm -f backend-api || true  # Remove existing backend container if present
+        docker rm -f frontend-api || true  # Remove existing frontend container if present
+        docker rm -f my-db || true  # Remove existing postgres container if present
 
-       # Check if the network exists; if not, create it
-       docker network inspect my3tier >/dev/null 2>&1 || sudo docker network create my3tier
+        # Check if the network exists; if not, create it
+        docker network inspect my3tier >/dev/null 2>&1 || sudo docker network create my3tier
 
-       #Run the postgres
-       sudo docker run -d --name my-db --network my3tier -e POSTGRES_DB=basic3tier -e POSTGRES_PASSWORD=admin123 -e POSTGRES_USER=postgres -p 5432:5432 postgres:latest
+        #Run the postgres
+        sudo docker run -d --name my-db --network my3tier -e POSTGRES_DB=basic3tier -e POSTGRES_PASSWORD=admin123 -e POSTGRES_USER=postgres -p 5432:5432 postgres:latest
 
 
-       # Run the backend container on port 5000
-       sudo docker run -d --name backend-api --network my3tier -p 5000:80 \
-       -e DATABASE_URL=postgresql://postgres:admin123@my-db:5432/basic3tier \
-       mirmika/backend:latest
+        # Run the backend container on port 5000
+        sudo docker run -d --name backend-api --network my3tier -p 5000:80 \
+        -e DATABASE_URL=postgresql://postgres:admin123@my-db:5432/basic3tier \
+        mirmika/backend:latest
 
-       # Run the frontend container on port 80
-       sudo docker run -d --name frontend-api --network my3tier -p 80:80 \
-       mirmika/frontend:latest
+        # Run the frontend container on port 80
+        sudo docker run -d --name frontend-api --network my3tier -p 80:80 \
+        mirmika/frontend:latest
 
-       EOF
+        EOF
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
