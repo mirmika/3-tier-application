@@ -31,7 +31,7 @@ jobs:
 
     - name: Deploy Docker Containers to EC2
       run: |
-       ssh ubuntu@${{ secrets.EC2_PUBLIC_IP }} /bin/bash << 'EOF'
+       ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
        # Update packages and install Docker if not already installed
         if ! command -v docker &> /dev/null
           then
