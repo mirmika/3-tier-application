@@ -48,29 +48,33 @@ jobs:
         sudo usermod -aG docker ubuntu
       
         # Pull latest Docker images
-        sudo docker pull mirmika/backend:latest
-        sudo docker pull mirmika/frontend:latest
+        sudo docker pull mirmika/basic3tier-api:latest
+        sudo docker pull mirmika/basic3tier-ui:latest
       
         # Create the Docker network
         docker network create my3tier || true 
       
         # Remove existing containers
-        docker rm -f backend-api || true
-        docker rm -f frontend-api || true
+        docker rm -f basic3tier-api || true
+        docker rm -f basic3tier-ui || true
         docker rm -f my-db || true
       
-        # Run PostgreSQL
-        sudo docker run -d --name my-db --network my3tier -e POSTGRES_DB=basic3tier -e POSTGRES_PASSWORD=admin123 -e POSTGRES_USER=postgres -p 5432:5432 postgres:latest
+        #Run the database
+        docker run -d --name my-db --network my3tier -p 5432:5432 \
+        -e POSTGRES_DB=basic3tier \
+        -e POSTGRES_USER=postgres \
+       -e POSTGRES_PASSWORD=admin123 \
+       postgres
       
         # Run backend
-        sudo docker run -d --name backend-api --network my3tier -p 5000:80 \
-        -e DATABASE_URL="Host=my-db;Port=5432;Database=basic3tier;Username=postgres;Password=admin123" \
-        mirmika/backend:latest
+        sudo docker run -d --name basic3tier-api --network my3tier -p 5000:80 \
+        -e ConnectionStrings__Basic3Tier="Host=my-db;Port=5432;Database=basic3tier;Username=postgres;Password=admin123" \
+         mirmmika/basic3tier-api:latest
       
         # Run frontend
-        sudo docker run -d --name frontend-api --network my3tier -p 80:80 \
+        sudo docker run -d --name basic3tier-ui --network my3tier -p 80:80 \
         -e API_URL="http://localhost:5000/" \
-        mirmika/frontend:latest
+        mirmika/basic3tier-ui:latest
        EOF
       
     - name: Set up JDK 17

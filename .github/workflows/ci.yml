@@ -19,19 +19,19 @@ jobs:
       - name: Build and test Backend API
         run: |
           cd ./api
-          docker build -t mirmika/backend:latest .
+          docker build -t mirmika/basic3tier-api:latest .
           
       # Build and test Frontend UI
       - name: Build and test Frontend UI
         run: |
           cd ./ui
-          docker build -t mirmika/frontend:latest .
+          docker build -t mirmika/basic3tier-ui:latest .
 
       # Tag Docker Images with commit SHA
       - name: Tag Docker Images with commit SHA
         run: |
-          docker tag mirmika/backend:latest mirmika/backend:${{ github.sha }}
-          docker tag mirmika/frontend:latest mirmika/frontend:${{ github.sha }}
+          docker tag mirmika/basic3tier-api:latest mirmika/basic3tier-api:${{ github.sha }}
+          docker tag mirmika/basic3tier-ui:latest mirmika/basic3tier-ui:latest:${{ github.sha }}
 
       # Log in to Docker Hub
       - name: Log in to Docker Hub
@@ -43,10 +43,10 @@ jobs:
       # Push Docker Images to DockerHub
       - name: Push Docker Images to DockerHub
         run: |
-          docker push mirmika/backend:latest
-          docker push mirmika/frontend:latest
-          docker push mirmika/backend:${{ github.sha }}
-          docker push mirmika/frontend:${{ github.sha }}
+          docker push mirmika/basic3tier-api:latest
+          docker push mirmika/basic3tier-ui:latest
+          docker push mirmika/basic3tier-api:${{ github.sha }}
+          docker push mirmika/basic3tier-ui:latest:${{ github.sha }}
 
       # Set up JDK 17 for SonarQube analysis
       - name: Set up JDK 17
