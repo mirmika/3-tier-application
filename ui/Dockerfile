@@ -1,19 +1,17 @@
 FROM nginx:alpine
 
+# We'll need 'sed' for the runtime substitution
 RUN apk add --no-cache bash
 
 WORKDIR /usr/share/nginx/html
 
-# Copy the website content
+# Copy all UI code
 COPY . .
 
-# Copy the custom Nginx config into the container
-COPY custom-nginx.conf /etc/nginx/conf.d/
-
-# Copy the entrypoint script
+# Copy an entrypoint script
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 EXPOSE 80
-
 ENTRYPOINT ["/entrypoint.sh"]
+CMD ["nginx", "-g", "daemon off;"]
