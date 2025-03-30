@@ -1,0 +1,51 @@
+name: Test Pipeline
+
+on:
+  #workflow_dispatch:
+   push:
+    branches:
+      - main
+   pull_request:
+     branches:
+      - main
+
+jobs:
+  test-core:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+         dotnet-version: '7.0'
+
+      - name: List current directory and files
+        run: |
+         pwd
+         ls -R
+
+      - name: Restore dependencies
+        run: dotnet restore ./api/Tests/Basic3Tier.Core.Tests/Basic3Tier.Core.Tests.csproj
+
+      - name: Run unit tests for Core
+        run: dotnet test ./api/Tests/Basic3Tier.Core.Tests/Basic3Tier.Core.Tests.csproj 
+  
+
+  test-infrastructure:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.0'
+
+      - name: Restore dependencies
+        run: dotnet restore ./api/Tests/Basic3Tier.Infrastructure.Tests/Basic3Tier.Infrastructure.Tests.csproj
+
+      - name: Run unit tests for Infrastructure
+        run: dotnet test ./api/Tests/Basic3Tier.Infrastructure.Tests/Basic3Tier.Infrastructure.Tests.csproj
