@@ -1,18 +1,14 @@
 FROM nginx:alpine
 
-# Install required packages (bash and jq for JSON modification)
-RUN apk add --no-cache bash jq
+# We'll need 'sed' for the runtime substitution
+RUN apk add --no-cache bash
 
 WORKDIR /usr/share/nginx/html
 
-# Copy all UI code and the config folder
+# Copy all UI code
 COPY . .
-COPY config /usr/share/nginx/html/config
 
-# Copy the Nginx configuration file
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Copy the entrypoint script
+# Copy an entrypoint script
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
