@@ -6,3 +6,4 @@ if [ -n "$API_URL" ]; then
 fi
 
 exec "$@"
+
