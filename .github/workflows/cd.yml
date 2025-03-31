@@ -74,7 +74,7 @@ jobs:
           # Run the UI container
           sudo docker run -d --network my3tier-network --name basic3tier-ui \
           -p 80:80 \
-          -e "API_URL=http://localhost:5000/" \
+          -e "API_URL=http://my3tier-api:5000/" \
           mirmika/basic3tier-ui:latest
           EOF
 
